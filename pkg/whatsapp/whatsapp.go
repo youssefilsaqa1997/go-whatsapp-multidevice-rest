@@ -55,7 +55,7 @@ func init() {
 
 	datastore, err := sqlstore.New(dbType, dbURI, nil)
 	if err != nil {
-		log.Print(nil).Fatal("Error Connect WhatsApp Client Datastore")
+		log.Print(nil).Fatal("Error Connect WhatsApp Client Datastore , with error : ", err)
 	}
 
 	WhatsAppClientProxyURL, _ = env.GetEnvString("WHATSAPP_CLIENT_PROXY_URL")
