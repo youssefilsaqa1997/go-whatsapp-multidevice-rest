@@ -42,7 +42,7 @@ func Login(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid credentials"})
 	}
 
-	jid := user.Phone + "@s.whatsapp.net"
+	jid := user.Phone
 
 	claims := &types.AuthJWTClaims{
 		JID: jid,
