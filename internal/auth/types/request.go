@@ -1,5 +1,6 @@
 package types
 
-type RequestAuthBasicInfo struct {
-	Username string
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }

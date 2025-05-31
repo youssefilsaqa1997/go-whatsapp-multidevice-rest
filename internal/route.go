@@ -32,7 +32,7 @@ func Routes(e *echo.Echo) {
 
 	// Route for Auth
 	// ---------------------------------------------
-	e.GET(router.BaseURL+"/auth", ctlAuth.Auth, auth.BasicAuth())
+	e.POST(router.BaseURL+"/auth/login", ctlAuth.Login)
 
 	// Route for WhatsApp
 	// ---------------------------------------------

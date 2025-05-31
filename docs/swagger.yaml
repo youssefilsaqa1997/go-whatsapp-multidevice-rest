@@ -1,3 +1,11 @@
+definitions:
+  types.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
 info:
   contact:
     email: drh.dimasrestu@gmail.com
@@ -18,19 +26,42 @@ paths:
       summary: Show The Status of The Server
       tags:
       - Root
-  /auth:
-    get:
-      description: Get Authentication Token
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Logs in user using MongoDB and returns JWT token
+      parameters:
+      - description: Username and Password
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/types.LoginRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: ""
-      security:
-      - BasicAuth: []
-      summary: Generate Authentication Token
+          description: token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User login
       tags:
-      - Root
+      - Authentication
   /group:
     get:
       description: Get Joined Groups Information from WhatsApp
@@ -272,8 +303,7 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Send Contact Message to Spesific WhatsApp Personal ID or Group
-        ID
+      description: Send Contact Message to Spesific WhatsApp Personal ID or Group ID
       parameters:
       - description: Destination WhatsApp Personal ID or Group ID
         in: formData
@@ -304,8 +334,7 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Send Document Message to Spesific WhatsApp Personal ID or Group
-        ID
+      description: Send Document Message to Spesific WhatsApp Personal ID or Group ID
       parameters:
       - description: Destination WhatsApp Personal ID or Group ID
         in: formData
@@ -397,8 +426,7 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Send Location Message to Spesific WhatsApp Personal ID or Group
-        ID
+      description: Send Location Message to Spesific WhatsApp Personal ID or Group ID
       parameters:
       - description: Destination WhatsApp Personal ID or Group ID
         in: formData
@@ -465,8 +493,7 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Send Sticker Message to Spesific WhatsApp Personal ID or Group
-        ID
+      description: Send Sticker Message to Spesific WhatsApp Personal ID or Group ID
       parameters:
       - description: Destination WhatsApp Personal ID or Group ID
         in: formData

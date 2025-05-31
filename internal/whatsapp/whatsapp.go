@@ -17,11 +17,9 @@ import (
 	typWhatsApp "github.com/dimaskiddo/go-whatsapp-multidevice-rest/internal/whatsapp/types"
 )
 
-func jwtPayload(c echo.Context) typAuth.AuthJWTClaimsPayload {
+func jwtPayload(c echo.Context) *typAuth.AuthJWTClaims {
 	jwtToken := c.Get("user").(*jwt.Token)
-	jwtClaims := jwtToken.Claims.(*typAuth.AuthJWTClaims)
-
-	return jwtClaims.Data
+	return jwtToken.Claims.(*typAuth.AuthJWTClaims)
 }
 
 func convertFileToBytes(file multipart.File) ([]byte, error) {

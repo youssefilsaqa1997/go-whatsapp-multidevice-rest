@@ -1,69 +1,61 @@
 package auth
 
 import (
-	"encoding/json"
+	"context"
+	"github.com/dimaskiddo/go-whatsapp-multidevice-rest/pkg/auth"
+	"net/http"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 
-	typAuth "github.com/dimaskiddo/go-whatsapp-multidevice-rest/internal/auth/types"
-
-	"github.com/dimaskiddo/go-whatsapp-multidevice-rest/pkg/auth"
-	"github.com/dimaskiddo/go-whatsapp-multidevice-rest/pkg/router"
+	"github.com/dimaskiddo/go-whatsapp-multidevice-rest/internal/auth/types"
+	"github.com/dimaskiddo/go-whatsapp-multidevice-rest/internal/database"
 )
 
-// Auth
-// @Summary     Generate Authentication Token
-// @Description Get Authentication Token
-// @Tags        Root
-// @Produce     json
-// @Success     200
-// @Security    BasicAuth
-// @Router      /auth [get]
-func Auth(c echo.Context) error {
-	var reqAuthBasicInfo typAuth.RequestAuthBasicInfo
-	var resAuthJWTData typAuth.ResponseAuthJWTData
-
-	// Parse Basic Auth Information from Rewrited Body Request
-	// By Basic Auth Middleware
-	_ = json.NewDecoder(c.Request().Body).Decode(&reqAuthBasicInfo)
-
-	// Create JWT Claims
-	var jwtClaims *typAuth.AuthJWTClaims
-	if auth.AuthJWTExpiredHour > 0 {
-		jwtClaims = &typAuth.AuthJWTClaims{
-			typAuth.AuthJWTClaimsPayload{
-				JID: reqAuthBasicInfo.Username,
-			},
-			jwt.StandardClaims{
-				IssuedAt:  time.Now().Unix(),
-				ExpiresAt: time.Now().Add(time.Hour * time.Duration(auth.AuthJWTExpiredHour)).Unix(),
-			},
-		}
-	} else {
-		jwtClaims = &typAuth.AuthJWTClaims{
-			typAuth.AuthJWTClaimsPayload{
-				JID: reqAuthBasicInfo.Username,
-			},
-			jwt.StandardClaims{
-				IssuedAt: time.Now().Unix(),
-			},
-		}
+// Login godoc
+// @Summary User login
+// @Description Logs in user using MongoDB and returns JWT token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param credentials body types.LoginRequest true "Username and Password"
+// @Success 200 {object} map[string]string "token"
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /auth/login [post]
+func Login(c echo.Context) error {
+	var req types.LoginRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid request"})
 	}
 
-	// Create JWT Token
-	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwtClaims)
+	collection := database.GetMongoCollection("auth", "users")
 
-	// Generate Encoded JWT Token
-	jwtTokenEncoded, err := jwtToken.SignedString([]byte(auth.AuthJWTSecret))
+	var user types.User
+	err := collection.FindOne(context.TODO(), map[string]interface{}{
+		"username": req.Username,
+		"password": req.Password,
+	}).Decode(&user)
+
 	if err != nil {
-		return router.ResponseInternalError(c, "")
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "Invalid credentials"})
 	}
 
-	// Set Encoded JWT Token as Response Data
-	resAuthJWTData.Token = jwtTokenEncoded
+	jid := user.Phone + "@s.whatsapp.net"
 
-	// Return JWT Token in JSON Response
-	return router.ResponseSuccessWithData(c, "Successfully Authenticated", resAuthJWTData)
+	claims := &types.AuthJWTClaims{
+		JID: jid,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString([]byte(auth.AuthJWTSecret)) // set in .env
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "Token generation failed"})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"token": signedToken})
 }

@@ -28,24 +28,57 @@
                 }
             }
         },
-        "/auth": {
-            "get": {
-                "security": [
-                    {
-                        "BasicAuth": []
-                    }
+        "/auth/login": {
+            "post": {
+                "description": "Logs in user using MongoDB and returns JWT token",
+                "consumes": [
+                    "application/json"
                 ],
-                "description": "Get Authentication Token",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Root"
+                    "Authentication"
                 ],
-                "summary": "Generate Authentication Token",
+                "summary": "User login",
+                "parameters": [
+                    {
+                        "description": "Username and Password",
+                        "name": "credentials",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.LoginRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }
@@ -857,6 +890,19 @@
                     "200": {
                         "description": ""
                     }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "types.LoginRequest": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         }
