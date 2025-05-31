@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"github.com/robfig/cron/v3"
 
 	"github.com/dimaskiddo/go-whatsapp-multidevice-rest/pkg/log"
@@ -25,6 +26,7 @@ func Routines(cron *cron.Cron) {
 				log.Print(nil).Info("Checking WhatsApp Client for " + maskJID)
 
 				// Check WhatsAppClient Registered JID with Authenticated MSISDN
+				fmt.Println(jid, realJID)
 				if jid != realJID {
 					// Print Log Show Information to Force Log-out Device
 					log.Print(nil).Info("Logging out WhatsApp Client for " + maskJID + " Due to Missmatch Authentication")
